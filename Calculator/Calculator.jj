@@ -1,0 +1,135 @@
+/*
+        ===========================================================
+        CPCS-302 Project Phase 03 (JavaCC Calculator)
+        Mahmued Alardawi    2135209    CS1
+        mmalardawi@stu.kau.edu.sa
+        ===========================================================
+ */
+
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = false;
+}
+
+PARSER_BEGIN(Calculator)
+package CPCS302_project3;
+import java.io.*;
+import java.util.*;
+
+public class Calculator {
+    public static void main(String[] args) throws IOException  {
+        Calculator parser = new Calculator(System.in);
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String input = "";
+        while (true) {
+            System.out.print("Enter expression or type 'exit' to quit: ");
+            try {
+                input = br.readLine();
+                if ("exit".equalsIgnoreCase(input.trim())) {
+                    System.out.println("Program terminated.");
+                    break;
+                }
+                parser.ReInit(new ByteArrayInputStream(input.getBytes()));
+                double result = parser.Expression();
+                System.out.println("Result: " + result);
+            }
+            catch (ParseException e) {
+                System.out.println("Invalid expression. Please try again.");
+            }
+            catch (Error e) {
+                System.out.println("Invalid expression. Please try again.");
+            }
+            System.out.println("");
+        }
+    }
+}
+
+PARSER_END(Calculator)
+
+SKIP: { " " }
+
+TOKEN: { < EOL: "\n" | "\r" | "\r\n" > }
+
+TOKEN: { < PLUS: "+" > }
+
+TOKEN: { < MINUS: "-" > }
+
+TOKEN: { < TIMES: "*" > }
+
+TOKEN: { < DIVIDE: "/" > }
+
+TOKEN: { < OPEN_PAR: "(" > }
+
+TOKEN: { < CLOSE_PAR: ")" > }
+
+TOKEN: { < NUMBER: <DIGITS> | <DIGITS> "." <DIGITS> | <DIGITS> "." | "." <DIGITS> > }
+
+TOKEN: { < #DIGITS: (["0"-"9"])+ > }
+
+void Start(PrintStream printStream) throws NumberFormatException :
+{}
+{
+	(
+		value = Expression()
+		<EOL>
+		{ printStream.println( value ) ; }
+	)*
+	<EOF>
+}
+
+double Expression() throws NumberFormatException :
+{
+	double i ;
+	double value ;
+}
+{
+	value = Term()
+	(
+		<PLUS>
+		i = Term()
+		{ value += i ; }
+	|
+		<MINUS>
+		i = Term()
+		{ value -= i ; }
+	)*
+	{ return value ; }
+}
+
+double Term() throws NumberFormatException :
+{
+	double i ;
+	double value ;
+}
+{
+	value = Primary()
+	(
+		<TIMES>
+		i = Primary()
+		{ value *= i ; }
+	|
+		<DIVIDE>
+		i = Primary()
+		{ value /= i ; }
+	)*
+	{ return value ; }
+}
+	
+double Primary() throws NumberFormatException :
+{
+	Token t ;
+	double d ;
+}
+{
+	t=<NUMBER>
+	{ return Double.parseDouble( t.image ) ; }
+	|
+	<OPEN_PAR> d=Expression() <CLOSE_PAR>
+	{ return d ; }
+	|
+	<MINUS> d=Primary()
+	{ return -d ; }
+}
